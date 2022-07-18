@@ -12,6 +12,7 @@ $(function() {
 
     var input = $("#message");
     var button = $(".button");
+    var capPhoto = $(".capPhoto");
 
     var div_form = $(".form");
     var div_form2 = $(".form2");
@@ -71,19 +72,32 @@ $(function() {
             step++;
             send = "";
         } else if(step == 3) {
-            var camArea = $(".cam");
-            var camera = document.getElementById("camera");
+            openCamera();
 
-            if(navigator.mediaDevices.getUserMedia){
-                navigator.mediaDevices.getUserMedia({audio: false, video: true}).then((stream) => {
-                    camArea.css("display", "block");
-                    camera.srcObject = stream;
-                }).catch((error) => {
-                    alert("Ooops! Falhou.");
-                })
-            }
+            step++;
+            send = "";
+        } else if(step == 4) {
+            messages.push({text: "Muito bem! agora vamos enviar a parte da frente do RG.", allow: "from"});
         }
     });
+
+    capPhoto.click(() => {
+        takePhoto();
+    });
+
+    function openCamera() {
+        var camArea = $(".cam");
+        var camera = document.getElementById("camera");
+
+        if(navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({audio: false, video: true}).then((stream) => {
+                camArea.css("display", "block");
+                camera.srcObject = stream;
+            }).catch((error) => {
+                alert("Ooops! Falhou.");
+            });
+        }
+    }
 
     function takePhoto() {
         var camera = document.getElementById("camera");
@@ -100,7 +114,12 @@ $(function() {
     }
 
     function generatePhoto(base64) {
+        console.log(base64);
+        div_main.append(message("Foto do CPF enviado!", "to"));
 
+        var camArea = $(".cam");
+        var camera = document.getElementById("camera");
+        camera.pause();
+        camArea.css("display", "none");
     }
-
 });
