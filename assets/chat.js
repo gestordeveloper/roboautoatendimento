@@ -12,14 +12,13 @@ $(function() {
 
     var input = $("#message");
     var button = $(".button");
-    var capPhoto = $(".capPhoto");
 
     var div_form = $(".form");
     var div_form2 = $(".form2");
     var div_form3 = $(".form3");
 
     function message(message, className){
-        return `<div class="${className}">${message}</div>`;
+        return `<div class="${className}"><p>${message}</p></div>`;
     }
 
     async function sleep(milliseconds) {
@@ -33,6 +32,7 @@ $(function() {
     async function loop(data, line) {
         for(var i = line; i < data.length; i++) {
             div_main.append(message(data[i].text, data[i].allow));
+            scrollToBottom();
             await sleep(time);
         }
     }
@@ -42,6 +42,7 @@ $(function() {
     button.click(async () => {
         if(step == 1) {
             div_main.append(message(input.val(), "to"));
+            scrollToBottom();
             send = input.val();
             div_form.css("display", "none");
             await sleep(time);
@@ -54,11 +55,13 @@ $(function() {
 
             await sleep(4000);
             div_form2.css("display", "flex");
+            scrollToBottom();
 
             step++;
             send = "";
         } else if(step == 2) {
             div_main.append(message("Okay!", "to"));
+            scrollToBottom();
             div_form2.css("display", "none");
             await sleep(time);
 
@@ -68,21 +71,30 @@ $(function() {
 
             await sleep(2000);
             div_form3.css("display", "flex");
+            scrollToBottom();
 
             step++;
             send = "";
         } else if(step == 3) {
             openCamera();
+            div_form3.css("display", "none");
 
             step++;
             send = "";
         } else if(step == 4) {
-            messages.push({text: "Muito bem! agora vamos enviar a parte da frente do RG.", allow: "from"});
-        }
-    });
+            takePhoto();
+            await sleep(time);
 
-    capPhoto.click(() => {
-        takePhoto();
+            messages.push({text: "Muito bem! agora vamos enviar a parte da frente do RG.", allow: "from"});
+            loop(messages,11);
+
+            await sleep(time);
+            div_form3.css("display", "flex");
+            scrollToBottom();
+
+            step++;
+            send = "";
+        }
     });
 
     function openCamera() {
@@ -90,8 +102,8 @@ $(function() {
         var camera = document.getElementById("camera");
 
         if(navigator.mediaDevices.getUserMedia) {
-            navigator.mediaDevices.getUserMedia({audio: false, video: true}).then((stream) => {
-                camArea.css("display", "block");
+            navigator.mediaDevices.getUserMedia({audio: false, video: {width: 1280, height: 720}}).then((stream) => {
+                camArea.css("display", "flex");
                 camera.srcObject = stream;
             }).catch((error) => {
                 alert("Ooops! Falhou.");
@@ -115,11 +127,18 @@ $(function() {
 
     function generatePhoto(base64) {
         console.log(base64);
-        div_main.append(message("Foto do CPF enviado!", "to"));
+        messages.push({text: "<img src='"+base64+"' alt=''>", allow: "to"});
+        messages.push({text: "Foto do CPF enviado!", allow: "to"});
+        loop(messages, 8);
 
         var camArea = $(".cam");
         var camera = document.getElementById("camera");
         camera.pause();
         camArea.css("display", "none");
+    }
+
+    function scrollToBottom() {
+        var mainHeight = document.getElementById("main");
+        mainHeight.scrollTop = mainHeight.scrollHeight;
     }
 });
